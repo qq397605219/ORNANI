@@ -6,20 +6,24 @@ OpenRouter API Proxy 启动脚本
 import uvicorn
 import sys
 import os
-from config import Config
+from config import config
 
 def main():
+    host = config.get('server.host')
+    port = config.get('server.port')
+    admin_password = config.get('admin.password')
+
     print("🚀 启动 OpenRouter API Proxy...")
-    print(f"📍 服务地址: http://{Config.HOST}:{Config.PORT}")
-    print(f"🔧 管理后台: http://{Config.HOST}:{Config.PORT}/admin")
-    print(f"🔑 管理员密码: {Config.ADMIN_PASSWORD}")
+    print(f"📍 服务地址: http://{host}:{port}")
+    print(f"🔧 管理后台: http://{host}:{port}/admin")
+    print(f"🔑 管理员密码: {admin_password}")
     print("=" * 50)
     
     try:
         uvicorn.run(
             "main:app",
-            host=Config.HOST,
-            port=Config.PORT,
+            host=host,
+            port=port,
             reload=True,
             log_level="info"
         )

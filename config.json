@@ -1,0 +1,31 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8000
+  },
+  "admin": {
+    "password": "admin123"
+  },
+  "database": {
+    "url": "openrouter_proxy.db"
+  },
+  "openrouter": {
+    "base_url": "https://openrouter.ai/api/v1",
+    "http_referer": "https://your-domain.com",
+    "x_title": "OpenRouter Proxy",
+    "free_model_suffix": ":free",
+    "auto_update_models_on_startup": true,
+    "model_cache_timeout": 3600,
+    "request_timeout": 60.0
+  },
+  "proxy": {
+    "load_balance_strategy": "round_robin"
+  },
+  "messages": {
+    "welcome": "OpenRouter API Proxy is running",
+    "admin_url_info": "/admin",
+    "model_not_allowed_error": "模型 '{model}' 不被允许。只支持免费模型。",
+    "no_available_key_error": "没有可用的API Key",
+    "internal_server_error": "内部服务器错误: {e}"
+  }
+}

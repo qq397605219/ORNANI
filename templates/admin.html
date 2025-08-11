@@ -22,6 +22,16 @@
             --border-radius: 10px;
         }
 
+        :root[data-theme="light"] {
+            --text-color: #333333;
+            --text-light: #666666;
+            --bg-color: #f5f5f5;
+            --surface-color: #ffffff;
+            --surface-hover: #f0f0f0;
+            --border-color: #dddddd;
+            --shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -83,6 +93,24 @@
         }
 
         .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .theme-toggle-btn {
+            position: absolute;
+            top: 20px;
+            right: 120px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--white);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .theme-toggle-btn:hover {
             background: rgba(255, 255, 255, 0.3);
         }
 
@@ -312,29 +340,6 @@
             margin-bottom: 25px;
         }
 
-        .key-list {
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            overflow: hidden;
-        }
-
-        .key-item {
-            display: grid;
-            grid-template-columns: 1fr 3fr 100px 150px 100px auto;
-            gap: 15px;
-            padding: 15px;
-            border-bottom: 1px solid var(--border-color);
-            align-items: center;
-            transition: background-color 0.3s;
-        }
-        
-        .key-item:last-child {
-            border-bottom: none;
-        }
-
-        .key-item:hover {
-            background-color: var(--surface-hover);
-        }
 
         .key-display {
             font-family: 'SF Mono', 'Courier New', monospace;
@@ -470,6 +475,88 @@
         .hidden {
             display: none;
         }
+
+        /* Modal Styles */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .modal-backdrop.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--surface-color);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid var(--border-color);
+            transform: scale(0.95);
+            transition: transform 0.3s;
+        }
+        
+        .modal-backdrop.show .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h2 {
+            font-size: 1.4em;
+            margin: 0;
+            padding: 0;
+            border: none;
+        }
+        
+        .modal-header h2::before {
+            display: none;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: var(--text-color);
+        }
+
+        .modal-body .form-group {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 25px;
+        }
         
         /* Help Page */
         .help-content {
@@ -517,6 +604,7 @@
     <div class="container">
         <div class="header">
             <button class="logout-btn" onclick="logout()" style="display: none;" id="logoutBtn">退出登录</button>
+            <button class="theme-toggle-btn" onclick="toggleTheme()" id="themeToggleBtn" title="切换主题">🌓</button>
             <h1>🚀 OpenRouter API Proxy</h1>
             <p>多Key轮询 · 免费模型过滤 · 使用统计管理</p>
         </div>
@@ -597,20 +685,39 @@
         <div id="keys" class="content">
             <div class="section">
                 <h2>📊 API Key 管理</h2>
-                <div class="key-form">
+                <form id="addKeyForm" class="key-form" style="grid-template-columns: 1fr 2fr 1fr auto; align-items: end;">
                     <div class="form-group">
                         <label for="keyName">Key名称</label>
-                        <input type="text" id="keyName" placeholder="例如：My-Personal-Key">
+                        <input type="text" id="keyName" placeholder="例如：My-Personal-Key" required>
                     </div>
                     <div class="form-group">
                         <label for="apiKey">API Key</label>
-                        <input type="text" id="apiKey" placeholder="输入OpenRouter API Key (sk-or-...)">
+                        <input type="text" id="apiKey" placeholder="输入OpenRouter API Key (sk-or-...)" required>
                     </div>
-                    <button class="btn" onclick="addApiKey()">添加Key</button>
-                </div>
+                    <div class="form-group">
+                        <label for="dailyLimit">每日限制</label>
+                        <input type="number" id="dailyLimit" placeholder="-1 表示无限制" value="-1">
+                    </div>
+                    <button type="submit" class="btn">添加Key</button>
+                </form>
                 <div id="keyAlert" class="alert-container"></div>
-                <div class="key-list" id="keyList">
-                    <!-- API Keys will be loaded here -->
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>名称</th>
+                                <th>API Key</th>
+                                <th>总使用量</th>
+                                <th>每日使用量</th>
+                                <th>最后使用</th>
+                                <th>状态</th>
+                                <th style="width: 150px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="keyList">
+                            <!-- API Keys will be loaded here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -692,6 +799,8 @@
                             <tr>
                                 <th>模型ID</th>
                                 <th>模型名称</th>
+                                <th>最大上下文</th>
+                                <th>参数量</th>
                                 <th>状态</th>
                             </tr>
                         </thead>
@@ -736,8 +845,42 @@
         </div>
     </div>
 
+    <!-- Edit Key Modal -->
+    <div id="editKeyModal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>编辑 API Key</h2>
+                <button class="close-btn" onclick="closeModal('editKeyModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editKeyForm">
+                    <input type="hidden" id="editKeyId">
+                    <div class="form-group">
+                        <label for="editKeyName">Key 名称</label>
+                        <input type="text" id="editKeyName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDailyLimit">每日限制</label>
+                        <input type="number" id="editDailyLimit" placeholder="-1 表示无限制" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editIsActive">状态</label>
+                        <select id="editIsActive" required>
+                            <option value="true">活跃</option>
+                            <option value="false">禁用</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('editKeyModal')">取消</button>
+                <button class="btn" onclick="updateApiKey()">保存更改</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        let authToken = '';
+        let authToken = sessionStorage.getItem('adminAuthToken') || '';
         let currentPage = 1;
         let pageSize = 50;
         
@@ -781,16 +924,34 @@
                     showTab(tabName);
                 });
             });
+
+            // Handle Add Key Form submission
+            document.getElementById('addKeyForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                addApiKey();
+            });
+
+            // Check for existing token on page load
+            if (authToken) {
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('navbar').classList.add('show');
+                document.getElementById('logoutBtn').style.display = 'block';
+                showTab('overview');
+            }
         });
         
         function logout() {
             authToken = '';
+            sessionStorage.removeItem('adminAuthToken');
             document.getElementById('loginSection').style.display = 'block';
             document.getElementById('navbar').classList.remove('show');
             document.getElementById('logoutBtn').style.display = 'none';
             document.querySelectorAll('.content').forEach(content => {
                 content.classList.remove('active');
             });
+            // Go back to login screen
+            document.getElementById('loginSection').style.display = 'block';
+            showTab('overview'); // This will hide all content tabs
         }
         
         async function login() {
@@ -808,16 +969,17 @@
                 
                 if (response.ok) {
                     authToken = password;
+                    sessionStorage.setItem('adminAuthToken', password);
                     document.getElementById('loginSection').style.display = 'none';
                     document.getElementById('navbar').classList.add('show');
                     document.getElementById('logoutBtn').style.display = 'block';
                     showTab('overview');
-                    alertDiv.innerHTML = '<div class="alert alert-success">登录成功！</div>';
+                    showAlert(document.getElementById('loginAlert'), '登录成功！', 'success');
                 } else {
-                    alertDiv.innerHTML = '<div class="alert alert-error">密码错误，请重试</div>';
+                    showAlert(document.getElementById('loginAlert'), '密码错误，请重试', 'error');
                 }
             } catch (error) {
-                alertDiv.innerHTML = '<div class="alert alert-error">登录失败：' + error.message + '</div>';
+                showAlert(document.getElementById('loginAlert'), `登录失败: ${error.message}`, 'error');
             }
         }
         
@@ -840,20 +1002,26 @@
                     
                     // 更新API Key列表
                     const keyList = document.getElementById('keyList');
-                    keyList.innerHTML = data.key_stats.map(key => `
-                        <div class="key-item">
-                            <div><strong>${key.key_name}</strong></div>
-                            <div class="key-display">${key.api_key || 'N/A'}</div>
-                            <div>${key.usage_count}</div>
-                            <div>${key.last_used || '未使用'}</div>
-                            <div class="${key.is_active ? 'status-active' : 'status-inactive'}">
-                                ${key.is_active ? '活跃' : '禁用'}
-                            </div>
-                            <div>
-                                <button class="btn btn-danger btn-small" onclick="deleteKey(${key.id})">删除</button>
-                            </div>
-                        </div>
-                    `).join('');
+                    keyList.innerHTML = data.key_stats.map(key => {
+                        const dailyLimit = key.daily_limit === -1 ? '∞' : key.daily_limit;
+                        const lastUsed = key.last_used ? new Date(key.last_used).toLocaleString() : '未使用';
+                        
+                        return `
+                        <tr>
+                            <td><strong>${key.key_name}</strong></td>
+                            <td><div class="key-display">${key.api_key ? `${key.api_key.substring(0, 9)}...` : 'N/A'}</div></td>
+                            <td>${key.usage_count}</td>
+                            <td>${key.daily_usage} / ${dailyLimit}</td>
+                            <td style="font-size: 13px;">${lastUsed}</td>
+                            <td><span class="${key.is_active ? 'status-active' : 'status-inactive'}">${key.is_active ? '活跃' : '禁用'}</span></td>
+                            <td>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-secondary btn-small" onclick="openEditModal(${key.id}, '${key.key_name}', ${key.daily_limit}, ${key.is_active})">编辑</button>
+                                    <button class="btn btn-danger btn-small" onclick="deleteKey(${key.id})">删除</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `}).join('');
                     
                     // 更新模型统计
                     const modelStats = document.getElementById('modelStats');
@@ -997,17 +1165,44 @@
                     const freeModelsList = document.getElementById('freeModelsList');
                     
                     if (data.models.length === 0) {
-                        freeModelsList.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #666;">暂无免费模型，请点击刷新按钮获取</td></tr>';
+                        freeModelsList.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #666;">暂无免费模型，请点击刷新按钮获取</td></tr>';
                     } else {
-                        freeModelsList.innerHTML = data.models.map(model => `
-                            <tr>
-                                <td><code>${model.model_id}</code></td>
-                                <td>${model.model_name}</td>
-                                <td class="${model.is_active ? 'status-active' : 'status-inactive'}">
-                                    ${model.is_active ? '可用' : '禁用'}
-                                </td>
-                            </tr>
-                        `).join('');
+                        freeModelsList.innerHTML = data.models.map(model => {
+                            // 格式化上下文长度
+                            const contextLength = model.context_length ? 
+                                (model.context_length >= 1000000 ? 
+                                    `${(model.context_length / 1000000).toFixed(1)}M` : 
+                                    (model.context_length >= 1000 ? 
+                                        `${(model.context_length / 1000).toFixed(0)}K` : 
+                                        model.context_length.toString()
+                                    )
+                                ) : '-';
+                            
+                            // 格式化参数量
+                            const parameters = model.parameters ? 
+                                (model.parameters.includes('B') || model.parameters.includes('M') ? 
+                                    model.parameters : 
+                                    (parseFloat(model.parameters) >= 1000000000 ? 
+                                        `${(parseFloat(model.parameters) / 1000000000).toFixed(1)}B` : 
+                                        (parseFloat(model.parameters) >= 1000000 ? 
+                                            `${(parseFloat(model.parameters) / 1000000).toFixed(1)}M` : 
+                                            model.parameters
+                                        )
+                                    )
+                                ) : '-';
+                            
+                            return `
+                                <tr>
+                                    <td><code>${model.model_id}</code></td>
+                                    <td>${model.model_name}</td>
+                                    <td style="text-align: center;">${contextLength}</td>
+                                    <td style="text-align: center;">${parameters}</td>
+                                    <td class="${model.is_active ? 'status-active' : 'status-inactive'}">
+                                        ${model.is_active ? '可用' : '禁用'}
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('');
                     }
                 }
             } catch (error) {
@@ -1054,33 +1249,38 @@
         async function addApiKey() {
             const keyName = document.getElementById('keyName').value;
             const apiKey = document.getElementById('apiKey').value;
+            const dailyLimit = document.getElementById('dailyLimit').value;
             const alertDiv = document.getElementById('keyAlert');
             
             if (!keyName || !apiKey) {
-                alertDiv.innerHTML = '<div class="alert alert-error">请填写完整信息</div>';
+                showAlert(alertDiv, '请填写Key名称和API Key', 'error');
                 return;
             }
             
+            const formData = new FormData();
+            formData.append('key_name', keyName);
+            formData.append('api_key', apiKey);
+            formData.append('daily_limit', dailyLimit);
+
             try {
                 const response = await fetch('/admin/keys', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: `key_name=${encodeURIComponent(keyName)}&api_key=${encodeURIComponent(apiKey)}`
+                    body: formData
                 });
                 
                 if (response.ok) {
-                    alertDiv.innerHTML = '<div class="alert alert-success">API Key添加成功！</div>';
-                    document.getElementById('keyName').value = '';
-                    document.getElementById('apiKey').value = '';
+                    showAlert(alertDiv, 'API Key添加成功！', 'success');
+                    document.getElementById('addKeyForm').reset();
                     loadDashboardData();
                 } else {
-                    alertDiv.innerHTML = '<div class="alert alert-error">添加失败，请重试</div>';
+                    const error = await response.json();
+                    showAlert(alertDiv, `添加失败: ${error.detail}`, 'error');
                 }
             } catch (error) {
-                alertDiv.innerHTML = '<div class="alert alert-error">添加失败：' + error.message + '</div>';
+                showAlert(alertDiv, `添加失败: ${error.message}`, 'error');
             }
         }
         
@@ -1089,6 +1289,7 @@
                 return;
             }
             
+            const alertDiv = document.getElementById('keyAlert');
             try {
                 const response = await fetch(`/admin/keys/${keyId}`, {
                     method: 'DELETE',
@@ -1098,14 +1299,98 @@
                 });
                 
                 if (response.ok) {
+                    showAlert(alertDiv, 'API Key删除成功', 'success');
                     loadDashboardData();
                 } else {
-                    alert('删除失败，请重试');
+                    const error = await response.json();
+                    showAlert(alertDiv, `删除失败: ${error.detail}`, 'error');
                 }
             } catch (error) {
-                alert('删除失败：' + error.message);
+                showAlert(alertDiv, `删除失败: ${error.message}`, 'error');
             }
         }
+
+        function openEditModal(id, name, limit, active) {
+            document.getElementById('editKeyId').value = id;
+            document.getElementById('editKeyName').value = name;
+            document.getElementById('editDailyLimit').value = limit;
+            document.getElementById('editIsActive').value = active.toString();
+            document.getElementById('editKeyModal').classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        async function updateApiKey() {
+            const keyId = document.getElementById('editKeyId').value;
+            const keyName = document.getElementById('editKeyName').value;
+            const dailyLimit = document.getElementById('editDailyLimit').value;
+            const isActive = document.getElementById('editIsActive').value === 'true';
+            const alertDiv = document.getElementById('keyAlert');
+
+            const formData = new FormData();
+            formData.append('key_name', keyName);
+            formData.append('daily_limit', dailyLimit);
+            formData.append('is_active', isActive);
+
+            try {
+                const response = await fetch(`/admin/keys/${keyId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    showAlert(alertDiv, 'API Key更新成功', 'success');
+                    closeModal('editKeyModal');
+                    loadDashboardData();
+                } else {
+                    const error = await response.json();
+                    showAlert(alertDiv, `更新失败: ${error.detail}`, 'error');
+                }
+            } catch (error) {
+                showAlert(alertDiv, `更新失败: ${error.message}`, 'error');
+            }
+        }
+
+        function showAlert(element, message, type = 'success') {
+            element.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                element.innerHTML = '';
+            }, 3000);
+        }
+
+        // 主题切换功能
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            // 更新按钮图标
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            themeToggleBtn.textContent = newTheme === 'light' ? '🌙' : '☀️';
+        }
+
+        // 页面加载时应用保存的主题
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            // 如果没有保存的主题，则根据系统偏好设置
+            const themeToApply = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+            
+            document.documentElement.setAttribute('data-theme', themeToApply);
+            
+            // 更新按钮图标
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            themeToggleBtn.textContent = themeToApply === 'light' ? '🌙' : '☀️';
+        });
+
     </script>
 </body>
 </html>

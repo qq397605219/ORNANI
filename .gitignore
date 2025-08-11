@@ -3,3 +3,4 @@ openrouter_proxy.db
 ./venv
 ./__pycache__
 
+app.db
