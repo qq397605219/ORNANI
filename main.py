@@ -149,6 +149,7 @@ app.add_middleware(
 # 静态文件和模板
 templates = Jinja2Templates(directory="templates")
 
+app.mount("/static", StaticFiles(directory="templates"), name="static")
 # 配置
 ADMIN_PASSWORD = "admin123"  # 管理员密码，实际使用时应该从环境变量读取
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"

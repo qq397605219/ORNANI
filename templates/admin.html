@@ -5,356 +5,511 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OpenRouter API Proxy 管理后台</title>
     <style>
+        /* General Reset & Base Styles */
+        :root {
+            --primary-color: #8A79F7;
+            --secondary-color: #A259FF;
+            --accent-color: #6a11cb;
+            --text-color: #EAEAEA;
+            --text-light: #A0A0A0;
+            --bg-color: #121212;
+            --surface-color: #1E1E1E;
+            --surface-hover: #2A2A2A;
+            --border-color: #333333;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+            --shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+            --border-radius: 10px;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
         }
-        
+
+        /* Container */
         .container {
             max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            min-height: 100vh;
-            box-shadow: 0 0 40px rgba(0,0,0,0.1);
+            margin: 20px auto;
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
         }
-        
+
+        /* Header */
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 30px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: var(--white);
+            padding: 30px;
             text-align: center;
+            position: relative;
         }
-        
+
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 2.2em;
+            font-weight: 700;
+            margin-bottom: 8px;
         }
-        
+
         .header p {
             opacity: 0.9;
             font-size: 1.1em;
         }
-        
+
+        /* Logout Button */
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--white);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Navigation */
         .navbar {
-            background: #f8f9fa;
-            border-bottom: 2px solid #e9ecef;
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
             padding: 0;
             display: none;
         }
-        
+
         .navbar.show {
             display: block;
         }
-        
+
         .nav-tabs {
             display: flex;
             list-style: none;
-            margin: 0;
-            padding: 0;
         }
-        
+
         .nav-tab {
             flex: 1;
             text-align: center;
         }
-        
+
         .nav-tab a {
             display: block;
-            padding: 15px 20px;
+            padding: 16px 20px;
             text-decoration: none;
-            color: #666;
+            color: var(--text-light);
             font-weight: 600;
             border-bottom: 3px solid transparent;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
+            font-size: 1em;
         }
-        
+
         .nav-tab a:hover {
-            background: #e9ecef;
-            color: #333;
+            color: var(--primary-color);
         }
-        
+
         .nav-tab.active a {
-            color: #667eea;
-            border-bottom-color: #667eea;
-            background: white;
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        /* Content & Sections */
+        .content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section {
+            background: var(--surface-color);
+            margin-bottom: 30px;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s;
         }
         
+        .section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section h2 {
+            font-size: 1.5em;
+            color: var(--text-color);
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .section h2::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background: var(--primary-color);
+            margin-right: 10px;
+            border-radius: 2px;
+        }
+
+
+        /* Login Form */
         .login-section {
-            padding: 40px;
+            padding: 60px 40px;
             text-align: center;
         }
-        
+
         .login-form {
             max-width: 400px;
             margin: 0 auto;
+            background: var(--surface-hover);
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
         }
-        
+
+        /* Form Elements */
         .form-group {
             margin-bottom: 20px;
             text-align: left;
         }
-        
+
         .form-group label {
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #333;
+            color: var(--text-light);
         }
-        
-        .form-group input {
+
+        .form-group input,
+        .form-group select {
             width: 100%;
             padding: 12px 15px;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
             font-size: 16px;
-            transition: border-color 0.3s;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
-        
-        .form-group input:focus {
+
+        .form-group input:focus,
+        .form-group select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
         }
-        
+
+        /* Buttons */
         .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: var(--primary-color);
+            color: #fff;
             border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
+            padding: 12px 25px;
+            border-radius: 6px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+            display: inline-block;
+            text-align: center;
         }
-        
+
         .btn:hover {
+            background: var(--secondary-color);
             transform: translateY(-2px);
         }
         
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--text-light);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--text-color);
+        }
+
+        .btn-danger {
+            background: var(--error-color);
+        }
+        
+        .btn-danger:hover {
+            background: #b02a37;
+        }
+
         .btn-small {
             padding: 6px 12px;
             font-size: 14px;
-            background: #dc3545;
         }
-        
-        .btn-secondary {
-            background: #6c757d;
-        }
-        
-        .content {
-            display: none;
-            padding: 30px;
-        }
-        
-        .content.active {
-            display: block;
-        }
-        
+
+        /* Stats Grid */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
             margin-bottom: 30px;
         }
-        
+
         .stat-card {
-            background: #f8f9fa;
+            background: var(--surface-hover);
             padding: 25px;
-            border-radius: 10px;
+            border-radius: var(--border-radius);
             text-align: center;
-            border-left: 4px solid #667eea;
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
         }
         
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
+
         .stat-card h3 {
-            color: #667eea;
-            font-size: 2em;
-            margin-bottom: 10px;
+            color: var(--primary-color);
+            font-size: 2.5em;
+            margin-bottom: 5px;
         }
-        
+
         .stat-card p {
-            color: #666;
-            font-size: 1.1em;
+            color: var(--text-light);
+            font-size: 1em;
         }
-        
-        .section {
-            background: #f8f9fa;
-            margin: 20px 0;
-            padding: 25px;
-            border-radius: 10px;
-        }
-        
-        .section h2 {
-            color: #333;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #667eea;
-        }
-        
+
+        /* Key Management */
         .key-form {
             display: grid;
             grid-template-columns: 1fr 2fr auto;
             gap: 15px;
             align-items: end;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
-        
+
         .key-list {
-            background: white;
-            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
             overflow: hidden;
         }
-        
+
         .key-item {
             display: grid;
             grid-template-columns: 1fr 3fr 100px 150px 100px auto;
             gap: 15px;
             padding: 15px;
-            border-bottom: 1px solid #e1e5e9;
+            border-bottom: 1px solid var(--border-color);
             align-items: center;
+            transition: background-color 0.3s;
         }
         
         .key-item:last-child {
             border-bottom: none;
         }
-        
-        .key-item:nth-child(even) {
-            background: #f8f9fa;
+
+        .key-item:hover {
+            background-color: var(--surface-hover);
         }
-        
+
         .key-display {
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            background: #f1f3f4;
+            font-family: 'SF Mono', 'Courier New', monospace;
+            font-size: 13px;
+            background: var(--bg-color);
             padding: 8px;
             border-radius: 4px;
             word-break: break-all;
-            max-height: 60px;
-            overflow-y: auto;
+            border: 1px solid var(--border-color);
         }
-        
+
+        /* Status Indicators */
         .status-active {
-            color: #28a745;
+            color: var(--success-color);
             font-weight: 600;
         }
-        
+
         .status-inactive {
-            color: #dc3545;
+            color: var(--error-color);
             font-weight: 600;
         }
-        
+
+        /* Table Styles */
+        .table-container {
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+        }
+
         .table {
             width: 100%;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-top: 20px;
+            border-collapse: collapse;
         }
-        
+
         .table th,
         .table td {
             padding: 12px 15px;
             text-align: left;
-            border-bottom: 1px solid #e1e5e9;
+            border-bottom: 1px solid var(--border-color);
         }
-        
+
         .table th {
-            background: #667eea;
-            color: white;
+            background: #2a2a2a;
+            color: var(--text-light);
             font-weight: 600;
             position: sticky;
             top: 0;
+            z-index: 1;
+        }
+
+        .table tr:last-child td {
+            border-bottom: none;
         }
         
-        .table tr:nth-child(even) {
-            background: #f8f9fa;
+        .table tr:hover {
+            background-color: var(--surface-hover);
         }
         
-        .table-container {
-            max-height: 600px;
-            overflow-y: auto;
-            border-radius: 8px;
+        .table code {
+            background: var(--bg-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
         }
-        
+
+        /* Filters */
         .filters {
-            background: white;
+            background: var(--surface-hover);
             padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            gap: 20px;
             align-items: end;
+            border: 1px solid var(--border-color);
         }
-        
+
+        /* Pagination */
         .pagination {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 10px;
-            margin-top: 20px;
+            gap: 8px;
+            margin-top: 25px;
         }
-        
+
         .pagination button {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            background: white;
+            padding: 8px 14px;
+            border: 1px solid var(--border-color);
+            background: var(--surface-hover);
+            color: var(--text-color);
             cursor: pointer;
-            border-radius: 4px;
+            border-radius: 6px;
+            transition: all 0.3s;
         }
-        
+
         .pagination button:hover {
-            background: #f8f9fa;
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #fff;
         }
-        
+
         .pagination button.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
         }
-        
+
+        /* Alerts */
         .alert {
             padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+            border: 1px solid transparent;
+            font-weight: 500;
         }
-        
+
         .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background: #e9f7ef;
+            color: #1d6c41;
+            border-color: #a3d8b8;
         }
-        
+
         .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background: #fdecea;
+            color: #8a2029;
+            border-color: #f8c5c9;
         }
-        
+
+        /* Helper Classes */
         .hidden {
             display: none;
         }
         
-        .logout-btn {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
+        /* Help Page */
+        .help-content {
+            background: var(--surface-hover);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
         }
         
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.3);
+        .help-content h3 {
+            margin-top: 25px;
+            font-size: 1.2em;
+            color: var(--text-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .help-content h3:first-child {
+            margin-top: 0;
+        }
+        
+        .help-content p, .help-content ul {
+            color: var(--text-light);
+        }
+        
+        .help-content code {
+            background: var(--bg-color);
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: 'SF Mono', 'Courier New', monospace;
+        }
+        
+        .help-content ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .help-content li {
+            margin-bottom: 8px;
         }
     </style>
 </head>
@@ -388,13 +543,13 @@
         
         <div id="loginSection" class="login-section">
             <div class="login-form">
-                <h2 style="margin-bottom: 30px; color: #333;">管理员登录</h2>
+                <h2>管理员登录</h2>
                 <div class="form-group">
                     <label for="password">管理员密码</label>
                     <input type="password" id="password" placeholder="请输入管理员密码">
                 </div>
                 <button class="btn" onclick="login()">登录</button>
-                <div id="loginAlert"></div>
+                <div id="loginAlert" class="alert-container"></div>
             </div>
         </div>
         
@@ -444,16 +599,16 @@
                 <h2>📊 API Key 管理</h2>
                 <div class="key-form">
                     <div class="form-group">
-                        <label>Key名称</label>
-                        <input type="text" id="keyName" placeholder="输入Key名称">
+                        <label for="keyName">Key名称</label>
+                        <input type="text" id="keyName" placeholder="例如：My-Personal-Key">
                     </div>
                     <div class="form-group">
-                        <label>API Key</label>
-                        <input type="text" id="apiKey" placeholder="输入OpenRouter API Key">
+                        <label for="apiKey">API Key</label>
+                        <input type="text" id="apiKey" placeholder="输入OpenRouter API Key (sk-or-...)">
                     </div>
                     <button class="btn" onclick="addApiKey()">添加Key</button>
                 </div>
-                <div id="keyAlert"></div>
+                <div id="keyAlert" class="alert-container"></div>
                 <div class="key-list" id="keyList">
                     <!-- API Keys will be loaded here -->
                 </div>
@@ -494,7 +649,7 @@
                     <button class="btn btn-secondary" onclick="clearFilters()">清除筛选</button>
                 </div>
                 
-                <div id="logsAlert"></div>
+                <div id="logsAlert" class="alert-container"></div>
                 
                 <div class="table-container">
                     <table class="table">
@@ -526,11 +681,11 @@
         <div id="models" class="content">
             <div class="section">
                 <h2>🆓 免费模型管理</h2>
-                <div style="margin-bottom: 20px;">
-                    <button class="btn" onclick="refreshFreeModels()">🔄 刷新免费模型列表</button>
-                    <span style="margin-left: 15px; color: #666;">模型列表会在服务启动时自动更新</span>
+                <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+                    <button class="btn" onclick="refreshFreeModels(event)">🔄 刷新免费模型列表</button>
+                    <span style="color: var(--text-light);">模型列表会在服务启动时自动更新</span>
                 </div>
-                <div id="modelsAlert"></div>
+                <div id="modelsAlert" class="alert-container"></div>
                 <div class="table-container">
                     <table class="table">
                         <thead>
@@ -552,28 +707,29 @@
         <div id="help" class="content">
             <div class="section">
                 <h2>🔧 使用说明</h2>
-                <div style="background: white; padding: 20px; border-radius: 8px;">
+                <div class="help-content">
                     <h3>API端点</h3>
                     <p><strong>聊天完成:</strong> <code>POST /v1/chat/completions</code></p>
                     <p><strong>模型列表:</strong> <code>GET /v1/models</code></p>
                     
-                    <h3 style="margin-top: 20px;">认证方式</h3>
-                    <p>在请求头中添加: <code>Authorization: Bearer admin123</code></p>
+                    <h3>认证方式</h3>
+                    <p>在请求头中添加: <code>Authorization: Bearer [你的API Key]</code></p>
+                    <p>这里的API Key是指你在 "API Keys" 页面添加的密钥，而不是OpenRouter的原始Key。</p>
                     
-                    <h3 style="margin-top: 20px;">免费模型特性</h3>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
+                    <h3>免费模型特性</h3>
+                    <ul>
                         <li>✅ 自动从OpenRouter获取最新免费模型</li>
                         <li>✅ 支持所有带有 <code>:free</code> 后缀的模型</li>
                         <li>✅ 包括最新发布的免费模型如 <code>qwen/qwen3-coder:free</code></li>
                         <li>✅ 定期更新，无需手动维护模型列表</li>
                     </ul>
                     
-                    <h3 style="margin-top: 20px;">流式响应支持</h3>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
+                    <h3>流式响应支持</h3>
+                    <ul>
                         <li>✅ 支持流式和非流式响应</li>
                         <li>✅ 自动根据请求参数 <code>stream</code> 切换模式</li>
                         <li>✅ 完整保留原始响应格式</li>
-                        <li>✅ 兼容Cherry Studio等客户端</li>
+                        <li>✅ 兼容各类OpenAI客户端</li>
                     </ul>
                 </div>
             </div>
@@ -694,7 +850,7 @@
                                 ${key.is_active ? '活跃' : '禁用'}
                             </div>
                             <div>
-                                <button class="btn btn-small" onclick="deleteKey(${key.id || 0})">删除</button>
+                                <button class="btn btn-danger btn-small" onclick="deleteKey(${key.id})">删除</button>
                             </div>
                         </div>
                     `).join('');
@@ -859,7 +1015,7 @@
             }
         }
         
-        async function refreshFreeModels() {
+        async function refreshFreeModels(event) {
             const alertDiv = document.getElementById('modelsAlert');
             const button = event.target;
             
