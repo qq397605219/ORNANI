@@ -32,7 +32,11 @@ def load_config(path: str = "config.json") -> AppConfig:
         if admin_password:
             config_data['admin']['password'] = admin_password
             
-        port = os.getenv("PORT")
+        host = os.getenv("SERVER_HOST")
+        if host:
+            config_data['server']['host'] = host
+
+        port = os.getenv("SERVER_PORT")
         if port:
             config_data['server']['port'] = int(port)
             
